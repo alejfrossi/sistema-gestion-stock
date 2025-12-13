@@ -1,0 +1,22 @@
+# Archivos de base de datos (¡Privado!)
+*.db
+negocio.db
+
+# Archivos temporales de Python
+__pycache__/
+*.py[cod]
+
+# Carpetas de generación del EXE (Son muy pesadas)
+build/
+output/
+dist/
+*.spec
+
+# Entornos virtuales
+venv/
+env/
+.env
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
