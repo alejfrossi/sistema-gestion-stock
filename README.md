@@ -1,4 +1,4 @@
-# Sistema de Gestión de Stock y Ventas 🛒
+# Sistema de Gestión 🛒
 
 ## 🚀 Tecnologías
 * **Python 3.10+**
