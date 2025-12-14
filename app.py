@@ -10,12 +10,12 @@ ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
 # ==========================================
-# PARTE 1: BACKEND (DB + LÓGICA FINANCIERA)
+# PARTE 1: BACKEND (DB + LÓGICA FINANCIERA) - VERSIÓN ANTI-LOCK
 # ==========================================
 def iniciar_db():
-    conn = sqlite3.connect("negocio.db")
+    # timeout=10 hace que espere 10 segundos antes de dar error de bloqueo
+    conn = sqlite3.connect("negocio.db", timeout=10)
     cursor = conn.cursor()
-    # 1. TABLA PRODUCTOS (Ahora con PRECIO)
     cursor.execute('''CREATE TABLE IF NOT EXISTS productos (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             tipo TEXT, 
@@ -25,7 +25,6 @@ def iniciar_db():
             precio REAL,
             UNIQUE(nombre, tipo, genero))''')
     
-    # 2. TABLA HISTORIAL (Ahora con PRECIO DE VENTA y ID DE TICKET)
     cursor.execute('''CREATE TABLE IF NOT EXISTS historial (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             ticket_id TEXT,
@@ -36,24 +35,32 @@ def iniciar_db():
             precio_unitario REAL,
             total_renglon REAL,
             fecha TEXT)''')
-    conn.commit(); conn.close()
+    conn.commit()
+    conn.close()
 
 def db_consultar(query, params=()):
-    conn = sqlite3.connect("negocio.db")
-    cursor = conn.cursor()
-    cursor.execute(query, params)
-    datos = cursor.fetchall()
-    conn.close()
-    return datos
+    try:
+        # Usamos 'with' para que la conexión se cierre AUTOMÁTICAMENTE al terminar
+        with sqlite3.connect("negocio.db", timeout=10) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            datos = cursor.fetchall()
+            return datos
+    except Exception as e:
+        print(f"Error Lectura DB: {e}")
+        return []
 
 def db_ejecutar(query, params=()):
     try:
-        conn = sqlite3.connect("negocio.db")
-        cursor = conn.cursor()
-        cursor.execute(query, params)
-        conn.commit(); last_id = cursor.lastrowid; conn.close()
-        return "OK", last_id
-    except Exception as e: return str(e), 0
+        with sqlite3.connect("negocio.db", timeout=10) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            conn.commit()
+            return "OK", cursor.lastrowid
+    except Exception as e:
+        return str(e), 0
+
+# --- FUNCIONES ESPECÍFICAS (Wrappers) ---
 
 def db_listar_productos(filtro=""):
     q = "SELECT id, tipo, nombre, genero, cantidad, precio FROM productos"
@@ -62,45 +69,51 @@ def db_listar_productos(filtro=""):
     return db_consultar(q)
 
 def db_actualizar_producto(pid, t, n, g, c, p):
-    return db_ejecutar("UPDATE productos SET tipo=?, nombre=?, genero=?, cantidad=?, precio=? WHERE id=?", (t, n, g, c, p, pid))[0]
+    res, _ = db_ejecutar("UPDATE productos SET tipo=?, nombre=?, genero=?, cantidad=?, precio=? WHERE id=?", (t, n, g, c, p, pid))
+    return res
 
 def db_obtener_precio(pid):
     res = db_consultar("SELECT precio FROM productos WHERE id=?", (pid,))
     return res[0][0] if res else 0.0
 
 def db_procesar_venta(carrito):
-    # carrito = [{'id': 1, 'cantidad': 2, 'precio': 1500, 'nombre': '...'}, ...]
-    conn = sqlite3.connect("negocio.db"); cursor = conn.cursor()
+    # En transacciones complejas (varios pasos), controlamos la conexión manualmente
+    conn = sqlite3.connect("negocio.db", timeout=10)
+    cursor = conn.cursor()
     
-    # Generamos un ID de Ticket Único basado en la fecha/hora (ej: T-20231025-153001)
     ticket_id = f"T-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     try:
         for item in carrito:
-            # 1. Descontar Stock
+            # 1. Verificar Stock
             cursor.execute("SELECT cantidad FROM productos WHERE id=?", (item['id'],))
             stock_actual = cursor.fetchone()[0]
             if stock_actual < item['cantidad']:
                 conn.close(); return f"Error: Stock insuficiente para {item['nombre']}"
             
+            # 2. Descontar
             cursor.execute("UPDATE productos SET cantidad=? WHERE id=?", (stock_actual - item['cantidad'], item['id']))
             
-            # 2. Guardar en Historial con Precio y Ticket
+            # 3. Historial
             total_linea = item['cantidad'] * item['precio']
             cursor.execute("""
                 INSERT INTO historial (ticket_id, producto_id, producto_nombre, tipo_movimiento, cantidad, precio_unitario, total_renglon, fecha)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, (ticket_id, item['id'], item['nombre'], "VENTA", item['cantidad'], item['precio'], total_linea, fecha))
             
-        conn.commit(); conn.close()
+        conn.commit()
         return "OK"
     except Exception as e: 
-        conn.close(); return str(e)
+        conn.rollback() # Si falla, deshacer cambios
+        return str(e)
+    finally:
+        conn.close() # ESTO GARANTIZA QUE SIEMPRE SE CIERRE
 
 def db_procesar_compra(carrito):
-    conn = sqlite3.connect("negocio.db"); cursor = conn.cursor()
-    ticket_id = f"C-{datetime.now().strftime('%Y%m%d-%H%M%S')}" # C de Compra
+    conn = sqlite3.connect("negocio.db", timeout=10)
+    cursor = conn.cursor()
+    ticket_id = f"C-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     try:
@@ -112,16 +125,19 @@ def db_procesar_compra(carrito):
                 pid = cursor.lastrowid
             else:
                 pid = item['id']
-                # Actualizamos cantidad y ACTUALIZAMOS PRECIO (si cambió)
                 cursor.execute("UPDATE productos SET cantidad=cantidad+?, precio=? WHERE id=?", (item['cantidad'], item['precio'], pid))
                 if 'nombre_real' in item: nom = item['nombre_real']
             
             total_linea = item['cantidad'] * item['precio']
             cursor.execute("INSERT INTO historial VALUES (NULL,?,?,?,?,?,?,?,?)", 
                            (ticket_id, pid, nom, "COMPRA", item['cantidad'], item['precio'], total_linea, fecha))
-        conn.commit(); conn.close()
+        conn.commit()
         return "OK"
-    except Exception as e: return str(e)
+    except Exception as e: 
+        conn.rollback()
+        return str(e)
+    finally:
+        conn.close()
 
 # ==========================================
 # PARTE 2: WIDGETS PROPIOS
@@ -409,7 +425,7 @@ class Aplicacion(ctk.CTk):
         # Crear ventana flotante
         win = ctk.CTkToplevel(self)
         win.title("Nuevo Producto")
-        win.geometry("350x400")
+        win.geometry("350x500")
         win.attributes("-topmost", True) # Que se mantenga siempre encima
         
         ctk.CTkLabel(win, text="Datos del Nuevo Producto", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
