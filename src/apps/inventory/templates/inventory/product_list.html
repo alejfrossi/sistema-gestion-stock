@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventario</title>
+</head>
+<body>
+    <h1>Listado de Productos</h1>
+    
+    <ul>
+        {% for product in products %}
+            <li>
+                <strong>{{ product.name }}</strong> 
+                - ${{ product.price }} 
+                (Stock: {{ product.quantity }})
+            </li>
+        {% empty %}
+            <li>No hay productos registrados aún.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
