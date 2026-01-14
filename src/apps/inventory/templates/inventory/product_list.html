@@ -45,7 +45,14 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary">Editar</button>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'product_update' product.id %}" class="btn btn-sm btn-outline-primary">
+                                    Editar
+                                </a>
+                                <a href="{% url 'product_delete' product.id %}" class="btn btn-sm btn-outline-danger">
+                                    Eliminar
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
