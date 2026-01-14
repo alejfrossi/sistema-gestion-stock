@@ -3,11 +3,32 @@
 {% block title %}Listado de Productos{% endblock %}
 
 {% block content %}
-<div class="row mb-3">
-    <div class="col-md-6">
+<div class="row mb-4 align-items-center">
+    <div class="col-md-4">
         <h1>Inventario</h1>
     </div>
-    <div class="col-md-6 text-end">
+    
+    <div class="col-md-4">
+        <form method="get" class="d-flex">
+            <div class="input-group">
+                <input type="text" 
+                       name="q" 
+                       class="form-control" 
+                       placeholder="Buscar productos..." 
+                       value="{{ search_query|default:'' }}">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i>
+                </button>
+                {% if search_query %}
+                    <a href="{% url 'product_list' %}" class="btn btn-outline-danger" title="Limpiar búsqueda">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="col-md-4 text-end">
         <a href="{% url 'product_create' %}" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Nuevo Producto
         </a>

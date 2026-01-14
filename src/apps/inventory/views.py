@@ -1,11 +1,24 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 from .models import Product
 from .forms import ProductForm
 
 def product_list(request):
-    products = Product.objects.all() # 1. Consultar a la DB (SELECT * FROM product)
-    context = { 'products': products } # 2. Contexto: El "paquete" de datos que enviamos al HTML
-    return render(request, 'inventory/product_list.html', context) # 3. Renderizar: Unir el HTML con los datos
+    products = Product.objects.all()
+    query = request.GET.get('q')
+    
+    if query:
+        # Filtramos: El nombre contiene la query ó la categoría contiene la query
+        products = products.filter(
+            Q(name__icontains=query) | 
+            Q(category__name__icontains=query)
+        )
+
+    context = {
+        'products': products,
+        'search_query': query
+    }
+    return render(request, 'inventory/product_list.html', context)
 
 def product_create(request):
     if request.method == 'POST':
