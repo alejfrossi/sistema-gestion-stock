@@ -4,4 +4,5 @@ from . import views
 urlpatterns = [
     # Ruta vacía '' significa la raíz de esta app
     path('', views.product_list, name='product_list'),
+    path('nuevo/', views.product_create, name='product_create'),
 ]
