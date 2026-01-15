@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Categoría
 class Category(models.Model):
@@ -44,3 +45,36 @@ class Product(models.Model):
     @property
     def total_value(self):
         return self.price * self.quantity
+    
+# Movimiento de Stock
+class StockMovement(models.Model):
+    MOVEMENT_TYPES = (
+        ('IN', 'Entrada'),
+        ('OUT', 'Salida'),
+    )
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name="Producto")
+    movement_type = models.CharField(max_length=3, choices=MOVEMENT_TYPES, verbose_name="Tipo")
+    quantity = models.PositiveIntegerField(verbose_name="Cantidad")
+    reason = models.CharField(max_length=200, verbose_name="Motivo", help_text="Ej: Compra, Venta, Devolución")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="Usuario")
+
+    class Meta:
+        verbose_name = "Movimiento de Stock"
+        verbose_name_plural = "Movimientos de Stock"
+        ordering = ['-created_at'] # Los más recientes primero
+
+    def __str__(self):
+        return f"{self.get_movement_type_display()} de {self.quantity} - {self.product.name}"
+    
+    # El método save() para que actualice el producto automáticamente.
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs) # Guardamos el movimiento en la DB
+        
+        if self.movement_type == 'IN':
+            self.product.quantity += self.quantity
+        elif self.movement_type == 'OUT':
+            self.product.quantity -= self.quantity
+        
+        self.product.save()
