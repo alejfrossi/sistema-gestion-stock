@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from .models import Product
-from .forms import ProductForm
+from .models import Product, StockMovement
+from .forms import ProductForm, StockMovementForm
 
 @login_required
 def product_list(request):
@@ -61,3 +61,22 @@ def product_delete(request, pk):
 
     # Si es GET, mostramos la página de confirmación
     return render(request, 'inventory/product_confirm_delete.html', {'product': product})
+
+@login_required
+def stock_movement_create(request):
+    if request.method == 'POST':
+        form = StockMovementForm(request.POST)
+        if form.is_valid():
+            # No guardamos en DB todavía (commit=False)
+            movement = form.save(commit=False)
+            
+            movement.user = request.user
+
+            # Sí guardamos en DB (actualiza el stock)
+            movement.save()
+            
+            return redirect('product_list')
+    else:
+        form = StockMovementForm()
+
+    return render(request, 'inventory/stock_movement_form.html', {'form': form})
