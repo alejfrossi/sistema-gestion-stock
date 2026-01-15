@@ -15,6 +15,9 @@ class Category(models.Model):
 # Producto
 class Product(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nombre")
+
+    # SKU único para identificar el producto.
+    sku = models.CharField(max_length=50, unique=True, null=True, blank=True, verbose_name="Código SKU")
     
     # Relación: Un producto pertenece a una categoría.
     # on_delete=models.CASCADE significa: si borras la categoría 'Bebidas', 

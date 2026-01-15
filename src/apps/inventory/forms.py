@@ -4,10 +4,11 @@ from .models import Product
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'category', 'quantity', 'price']
+        fields = ['sku', 'name', 'category', 'quantity', 'price']
         
         # Estilos de Bootstrap (clase 'form-control') para cada input
         widgets = {
+            'sku': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: PROD-001'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Monitor 24"'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
@@ -15,6 +16,7 @@ class ProductForm(forms.ModelForm):
         }
         # Etiquetas personalizadas
         labels = {
+            'sku': 'Código SKU',
             'name': 'Nombre del Producto',
             'category': 'Categoría',
             'quantity': 'Cantidad en Stock',

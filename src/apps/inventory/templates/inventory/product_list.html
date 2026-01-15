@@ -41,6 +41,7 @@
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
+                        <th>SKU</th>
                         <th>Producto</th>
                         <th>Categoría</th>
                         <th>Precio</th>
@@ -51,18 +52,21 @@
                 <tbody>
                     {% for product in products %}
                     <tr>
-                        <td>
-                            <strong>{{ product.name }}</strong>
-                        </td>
+                        <td><small class="text-muted">{{ product.sku|default:"-" }}</small></td>
+                        <td><strong>{{ product.name }}</strong></td>
                         <td>
                             <span class="badge bg-secondary">{{ product.category.name }}</span>
                         </td>
                         <td>${{ product.price }}</td>
                         <td>
                             {% if product.quantity > 0 %}
-                                <span class="text-success fw-bold">{{ product.quantity }} un.</span>
+                                {% if 4 > product.quantity %}
+                                    <span class="text-warning fw-bold">{{ product.quantity }} un.</span>
+                                {% else %}
+                                    <span class="text-success fw-bold">{{ product.quantity }} un.</span>
+                                {% endif %}
                             {% else %}
-                                <span class="text-danger fw-bold">Sin Stock</span>
+                                <span class="table-danger text-danger fw-bold">Sin Stock</span>
                             {% endif %}
                         </td>
                         <td>
