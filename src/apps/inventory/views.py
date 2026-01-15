@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
 from .models import Product
 from .forms import ProductForm
 
+@login_required
 def product_list(request):
     products = Product.objects.all()
     query = request.GET.get('q')
@@ -11,15 +13,14 @@ def product_list(request):
         # Filtramos: El nombre contiene la query ó la categoría contiene la query
         products = products.filter(
             Q(name__icontains=query) | 
+            Q(sku__icontains=query) |
             Q(category__name__icontains=query)
         )
 
-    context = {
-        'products': products,
-        'search_query': query
-    }
+    context = { 'products': products, 'search_query': query }
     return render(request, 'inventory/product_list.html', context)
 
+@login_required
 def product_create(request):
     if request.method == 'POST':
         # Si es POST (el usuario envía datos), se rellena el formulario con ellos
@@ -35,6 +36,7 @@ def product_create(request):
 
     return render(request, 'inventory/product_form.html', {'form': form})
 
+@login_required
 def product_update(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
@@ -48,6 +50,7 @@ def product_update(request, pk):
 
     return render(request, 'inventory/product_form.html', {'form': form, 'product': product})
 
+@login_required
 def product_delete(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
