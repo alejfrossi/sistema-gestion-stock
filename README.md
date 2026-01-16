@@ -6,6 +6,7 @@
 ![Swagger](https://img.shields.io/badge/docs-Swagger_UI-85ea2d.svg)
 ![Postgres](https://img.shields.io/badge/database-postgres-blue)
 ![Render](https://img.shields.io/badge/deploy-render-black)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
 
 > 🚀 **Demo En Vivo:** [LIVE](https://sistema-stock-alejo-rossi.onrender.com/)
 >
@@ -34,6 +35,10 @@ El sistema implementa lógica de negocio robusta, auditoría de movimientos de s
 * **Documentación Automática:**
     * **Swagger UI:** Interfaz interactiva para probar endpoints (`/api/docs/`).
     * **Redoc:** Documentación técnica limpia (`/api/redoc/`).
+
+### ⚡ Microservicio de Reportes (Arquitectura Distribuida)
+* **Generación de PDFs:** Se separó la lógica de generación de documentos en un microservicio independiente construido con **FastAPI**.
+* **Comunicación Síncrona:** Django se comunica vía HTTP (`requests`) con el microservicio, enviando datos en JSON y recibiendo el archivo binario generado al vuelo.
 
 ## 🛠️ Stack Tecnológico
 
@@ -75,10 +80,19 @@ Si deseas clonar y correr este proyecto en tu máquina:
    DB_USER=postgres
    DB_PASSWORD=tu_password
 
-5. **Ejecutar migraciones y servidor:**
+5. **Ejecutar el Sistema (Arquitectura de Microservicios):**
+
+   El sistema requiere dos terminales abiertas simultáneamente:
+
+   **Terminal 1 (Django - Core App):**
    ```bash
-   python src/manage.py migrate
    python src/manage.py runserver
+   
+   **Terminal 2 (FastAPI - Microservicio):** (Asegúrate de tener el entorno virtual activado)
+   ```bash
+   uvicorn microservice.main:app --reload --port 8001
+
+   Ahora ingresa a http://127.0.0.1:8000. Al solicitar un reporte, Django delegará la tarea al puerto 8001 automáticamente.
 
 ## 📖 Documentación de la API
 
