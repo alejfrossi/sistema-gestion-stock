@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_spectacular',
     'corsheaders',
     'apps.inventory',
 ]
@@ -157,6 +158,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Configuración REST Framework
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',  # Para Apps Móviles
         'rest_framework.authentication.SessionAuthentication', # Para el Navegador (Admin)
@@ -164,4 +166,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated', # Solo usuarios logueados pueden ver la API
     ],
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API de Sistema Stock',
+    'DESCRIPTION': 'Documentación oficial de la API para gestión de inventarios y movimientos.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
