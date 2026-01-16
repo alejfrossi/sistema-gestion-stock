@@ -21,6 +21,10 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('django.contrib.auth.urls')),
+    # Rutas Web (HTML)
     path('productos/', include('apps.inventory.urls')),
+    # Rutas API (JSON)
+    path('api/', include('apps.inventory.urls_api')),
+    # Redirigir la raíz al listado de productos
     path('', RedirectView.as_view(url='/productos/', permanent=True)),
 ]
