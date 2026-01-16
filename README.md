@@ -84,14 +84,14 @@ Si deseas clonar y correr este proyecto en tu máquina:
 
    El sistema requiere dos terminales abiertas simultáneamente:
 
-   **Terminal 1 (Django - Core App):**
-   ```bash
-   python src/manage.py runserver
-   
-**Terminal 2 (FastAPI - Microservicio):** (Asegúrate de tener el entorno virtual activado)
-   ```bash
-   uvicorn microservice.main:app --reload --port 8001
+	**Terminal 1 (Django - Core App) & Terminal 2 (FastAPI - Microservicio):**
+	```bash
+	# Terminal 1
+	python src/manage.py runserver
 
+	# Terminal 2 (Asegúrate de tener el entorno virtual activado)
+	uvicorn microservice.main:app --reload --port 8001
+   
 Ahora ingresa a http://127.0.0.1:8000. Al solicitar un reporte, Django delegará la tarea al puerto 8001 automáticamente.
 
 ## 📖 Documentación de la API
@@ -106,3 +106,5 @@ Una vez iniciado el servidor, puedes acceder a la documentación interactiva en:
 * **Estructura 'src':** Se utilizó el patrón de carpeta src para mantener limpia la raíz del proyecto y separar la configuración del código fuente.
 * **Fat Models:** La lógica de cálculo de stock se encapsuló en el método save() del modelo StockMovement para evitar inconsistencias de datos en las vistas.
 * **CORS:** Configurado con django-cors-headers para permitir peticiones desde clientes externos en desarrollo.
+
+
