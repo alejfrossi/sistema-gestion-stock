@@ -1,3 +1,5 @@
+import requests
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
@@ -80,3 +82,35 @@ def stock_movement_create(request):
         form = StockMovementForm()
 
     return render(request, 'inventory/stock_movement_form.html', {'form': form})
+
+@login_required
+def generate_report(request):
+    # Obtener datos de la DB
+    products = Product.objects.all()
+
+    # Serializar datos (Convertir objetos Python a lista de diccionarios)
+    data_payload = {
+        "products": [
+            {
+                "name": p.name,
+                "sku": p.sku if p.sku else "-",
+                "quantity": p.quantity,
+                "price": float(p.price)
+            } for p in products
+        ]
+    }
+
+    # Llamar al Microservicio
+    try:
+        response = requests.post("http://127.0.0.1:8001/generate-pdf/", json=data_payload)
+        
+        # Devolver el PDF al navegador
+        if response.status_code == 200:
+            django_response = HttpResponse(response.content, content_type='application/pdf')
+            django_response['Content-Disposition'] = 'attachment; filename="reporte_stock.pdf"'
+            return django_response
+        else:
+            return HttpResponse("Error en el microservicio", status=500)
+            
+    except requests.exceptions.ConnectionError:
+        return HttpResponse("El servicio de PDF no está disponible", status=503)
