@@ -88,11 +88,11 @@ Si deseas clonar y correr este proyecto en tu máquina:
    ```bash
    python src/manage.py runserver
    
-   **Terminal 2 (FastAPI - Microservicio):** (Asegúrate de tener el entorno virtual activado)
+**Terminal 2 (FastAPI - Microservicio):** (Asegúrate de tener el entorno virtual activado)
    ```bash
    uvicorn microservice.main:app --reload --port 8001
 
-   Ahora ingresa a http://127.0.0.1:8000. Al solicitar un reporte, Django delegará la tarea al puerto 8001 automáticamente.
+Ahora ingresa a http://127.0.0.1:8000. Al solicitar un reporte, Django delegará la tarea al puerto 8001 automáticamente.
 
 ## 📖 Documentación de la API
 
