@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'apps.inventory',
 ]
@@ -156,6 +157,10 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Configuración REST Framework
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Para Apps Móviles
+        'rest_framework.authentication.SessionAuthentication', # Para el Navegador (Admin)
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated', # Solo usuarios logueados pueden ver la API
     ],
